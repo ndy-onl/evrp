@@ -43,3 +43,12 @@ The evrp platform is a sovereign, multi-tenant SaaS ERP based on Frappe Framewor
   - Single-threaded `banking_sync` queue (Concurrency = 1).
   - Redis locks to prevent IP-based anti-fraud locks from banks.
 - **Matching Engine:** Regex-based SEPA reference scanning and IBAN matching with automated Payment Entry submission.
+
+## Automated Invoice Ingestion (AI-OCR Pipeline)
+- **Edge Node:** Physical USB scanner automation (SANE/scanbd) on local Linux nodes.
+- **Email Ingestion:** IMAP attachment scraper with metadata filtering (size/MIME/pattern).
+- **AI OCR Server:** Local VLM (Qwen2-VL) using `instructor` for schema-enforced JSON extraction.
+- **Frappe Verification Queue:** 
+  - `Invoice Sandbox Queue`: Intermediate verification layer for human-in-the-loop validation.
+  - Side-by-side UI rendering PDF and extracted fields.
+  - Automated mapping to ERPNext `Purchase Invoice`.
