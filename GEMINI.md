@@ -32,3 +32,14 @@ The evrp platform is a sovereign, multi-tenant SaaS ERP based on Frappe Framewor
 - **Repo 1 (`evrp`):** Infrastructure, Docker Compose, Traefik labels.
 - **Repo 2 (`evrp-core`):** Custom Frappe App logic, compliance hooks, SaaS automation.
 - **CI/CD:** Coolify triggers builds from `evrp` repository.
+
+## Automated Bank Reconciliation (Postbank/FinTS)
+- **Strategy:** Direct FinTS/HBCI integration with asynchronous MFA (PSD2/BestSign) handling.
+- **Architecture:** 
+  - Overrides core `Bank Account` and `Bank Transaction` classes.
+  - Serializes session state (`client.pause()`) when MFA is required.
+  - Broadcasts challenge to frontend via WebSockets.
+- **Security:** 
+  - Single-threaded `banking_sync` queue (Concurrency = 1).
+  - Redis locks to prevent IP-based anti-fraud locks from banks.
+- **Matching Engine:** Regex-based SEPA reference scanning and IBAN matching with automated Payment Entry submission.
