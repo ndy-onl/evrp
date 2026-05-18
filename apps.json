@@ -1,18 +1,18 @@
 [
   {
-    "url": "https://github.com/frappe/erpnext",
+    "url": "git@github.com:frappe/erpnext.git",
     "branch": "version-15"
   },
   {
-    "url": "https://github.com/frappe/hrms",
+    "url": "git@github.com:frappe/hrms.git",
     "branch": "version-15"
   },
   {
-    "url": "https://github.com/phamos-eu/erpnext_germany",
+    "url": "git@github.com:phamos-eu/erpnext_germany.git",
     "branch": "version-15"
   },
   {
-    "url": "https://github.com/ndy-onl/evrp-core",
+    "url": "git@github.com:ndy-onl/evrp-core.git",
     "branch": "main"
   }
 ]
