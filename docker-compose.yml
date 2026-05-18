@@ -141,6 +141,22 @@ services:
       configurator:
         condition: service_completed_successfully
 
+  banking-worker:
+    image: evrp-app:latest
+    command: bench worker --queue banking_sync
+    deploy:
+      restart_policy:
+        condition: on-failure
+    environment:
+      - WORKER_CONCURRENCY=1
+    volumes:
+      - sites-vol:/home/frappe/frappe-bench/sites
+    networks:
+      - app-net
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+
   db:
     image: mariadb:11.8
     healthcheck:
