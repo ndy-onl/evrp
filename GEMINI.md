@@ -1,0 +1,34 @@
+# EVRP Project DNA: High-Performance Sovereign Multi-Tenant SaaS Architecture
+
+## Vision
+The evrp platform is a sovereign, multi-tenant SaaS ERP based on Frappe Framework (Version 15), designed to serve independent customer databases through a single, shared container application stack on private enterprise hardware.
+
+## Architecture: Multi-Tenancy
+- **Strategy:** Frappe native DNS multi-tenancy.
+- **Routing:** Coolify-managed Traefik v3 dynamically handles wildcard subdomains (`*.evrp.cloud`) and custom tenant domains.
+- **Traffic Flow:** 
+  `Internet -> Traefik (SSL) -> Frappe Nginx (Port 8080) -> Gunicorn (Port 8000) / Socket.IO (Port 9000)`
+
+## Core Components
+1. **Control Plane (`hub.evrp.cloud`):** 
+   - Master site hosting `evrp_core`.
+   - Manages onboarding, subscriptions, payment webhooks (Stripe), and monitoring.
+2. **Tenant Plane:**
+   - Single application stack serving isolated tenant databases.
+   - MariaDB (Internal, no external exposure).
+   - Redis cluster for caching and queues.
+
+## SaaS Operations
+- **Provisioning:** Asynchronous via Celery workers (`bench new-site`).
+- **Sandbox/Demo:** Fast-cloning from `template.evrp.cloud` (DB replication + filesystem cloning) to provide 1-click trials.
+- **Billing:** Stripe integration with automated maintenance mode toggling based on payment status.
+
+## German Compliance Stack
+- **Standard:** EN 16931 (E-Invoicing), GoBD (Record Immutability), DATEV (Financial Export).
+- **Modules:** `eu_einvoice`, `erpnext_germany`, `erpnext_datev`.
+- **Localization:** Europe/Berlin timezone, SKR03/SKR04 charts, localized formats.
+
+## Development & Deployment
+- **Repo 1 (`evrp`):** Infrastructure, Docker Compose, Traefik labels.
+- **Repo 2 (`evrp-core`):** Custom Frappe App logic, compliance hooks, SaaS automation.
+- **CI/CD:** Coolify triggers builds from `evrp` repository.

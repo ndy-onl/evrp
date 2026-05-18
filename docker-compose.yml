@@ -2,22 +2,24 @@ services:
   backend:
     build:
       context: .
-      dockerfile: images/layered/Containerfile
+      dockerfile: Dockerfile
       args:
         FRAPPE_BRANCH: version-15
-        FRAPPE_PATH: https://github.com/frappe/frappe
     image: evrp-app:latest
     deploy:
       restart_policy:
         condition: on-failure
     volumes:
-      - sites:/home/frappe/frappe-bench/sites
+      - sites-vol:/home/frappe/frappe-bench/sites
     environment:
       DB_HOST: db
       DB_PORT: "3306"
       REDIS_CACHE: redis-cache:6379
       REDIS_QUEUE: redis-queue:6379
       SOCKETIO_PORT: 9000
+    networks:
+      - coolify-infra
+      - app-net
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -47,7 +49,9 @@ services:
       REDIS_QUEUE: redis-queue:6379
       SOCKETIO_PORT: 9000
     volumes:
-      - sites:/home/frappe/frappe-bench/sites
+      - sites-vol:/home/frappe/frappe-bench/sites
+    networks:
+      - app-net
     depends_on:
       db:
         condition: service_healthy
@@ -70,7 +74,23 @@ services:
       PROXY_READ_TIMEOUT: ${PROXY_READ_TIMEOUT:-120}
       CLIENT_MAX_BODY_SIZE: ${CLIENT_MAX_BODY_SIZE:-50m}
     volumes:
-      - sites:/home/frappe/frappe-bench/sites
+      - sites-vol:/home/frappe/frappe-bench/sites
+    networks:
+      - coolify-infra
+      - app-net
+    labels:
+      - "coolify.managed=true"
+      - "coolify.proxy=true"
+      - "traefik.enable=true"
+      - "traefik.http.routers.evrp-http.entrypoints=http"
+      - "traefik.http.routers.evrp-http.rule=HostRegexp(`^.+\\.evrp\\.cloud$`) || HostRegexp(`^.+\\.[a-z0-9-]+\\.[a-z]+$`)"
+      - "traefik.http.routers.evrp-http.middlewares=redirect-to-https"
+      - "traefik.http.routers.evrp-https.entrypoints=https"
+      - "traefik.http.routers.evrp-https.rule=HostRegexp(`^.+\\.evrp\\.cloud$`) || HostRegexp(`^.+\\.[a-z0-9-]+\\.[a-z]+$`)"
+      - "traefik.http.routers.evrp-https.tls=true"
+      - "traefik.http.routers.evrp-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.evrp-https.service=evrp-frontend-service"
+      - "traefik.http.services.evrp-frontend-service.loadbalancer.server.port=8080"
     depends_on:
       - backend
       - websocket
@@ -81,7 +101,9 @@ services:
       - node
       - /home/frappe/frappe-bench/apps/frappe/socketio.js
     volumes:
-      - sites:/home/frappe/frappe-bench/sites
+      - sites-vol:/home/frappe/frappe-bench/sites
+    networks:
+      - app-net
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -90,7 +112,9 @@ services:
     image: evrp-app:latest
     command: bench worker --queue short,default
     volumes:
-      - sites:/home/frappe/frappe-bench/sites
+      - sites-vol:/home/frappe/frappe-bench/sites
+    networks:
+      - app-net
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -99,7 +123,9 @@ services:
     image: evrp-app:latest
     command: bench worker --queue long,default,short
     volumes:
-      - sites:/home/frappe/frappe-bench/sites
+      - sites-vol:/home/frappe/frappe-bench/sites
+    networks:
+      - app-net
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -108,7 +134,9 @@ services:
     image: evrp-app:latest
     command: bench schedule
     volumes:
-      - sites:/home/frappe/frappe-bench/sites
+      - sites-vol:/home/frappe/frappe-bench/sites
+    networks:
+      - app-net
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -131,18 +159,31 @@ services:
       MARIADB_AUTO_UPGRADE: 1
     volumes:
       - db-data:/var/lib/mysql
+    networks:
+      - app-net
 
   redis-cache:
     image: redis:8.6-alpine
     restart: unless-stopped
+    networks:
+      - app-net
 
   redis-queue:
     image: redis:8.6-alpine
     restart: unless-stopped
     volumes:
       - redis-queue-data:/data
+    networks:
+      - app-net
 
 volumes:
-  sites:
+  sites-vol:
+    external: true
   db-data:
   redis-queue-data:
+
+networks:
+  coolify-infra:
+    external: true
+  app-net:
+    driver: bridge
