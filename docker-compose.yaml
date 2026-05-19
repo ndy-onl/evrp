@@ -110,7 +110,7 @@ services:
 
   queue-short:
     image: evrp-app:latest
-    command: bench worker --queue short,default
+    command: bench worker --queue default
     volumes:
       - sites-vol:/home/frappe/frappe-bench/sites
     networks:
@@ -121,7 +121,7 @@ services:
 
   queue-long:
     image: evrp-app:latest
-    command: bench worker --queue long,default,short
+    command: bench worker --queue long,default
     volumes:
       - sites-vol:/home/frappe/frappe-bench/sites
     networks:
@@ -143,7 +143,7 @@ services:
 
   banking-worker:
     image: evrp-app:latest
-    command: bench worker --queue banking_sync
+    command: bench worker --queue short
     deploy:
       restart_policy:
         condition: on-failure
