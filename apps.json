@@ -12,6 +12,14 @@
     "branch": "version-15"
   },
   {
+    "url": "git@github.com:phamos-eu/eu_einvoice.git",
+    "branch": "version-15"
+  },
+  {
+    "url": "git@github.com:phamos-eu/erpnext_datev.git",
+    "branch": "version-15"
+  },
+  {
     "url": "git@github.com:ndy-onl/evrp-core.git",
     "branch": "main"
   }
